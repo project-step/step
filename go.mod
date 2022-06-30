@@ -1,4 +1,4 @@
-module github.com/project-step/step
+module github.com/stepneko/step
 
 go 1.18
 
