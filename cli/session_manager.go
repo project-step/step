@@ -3,7 +3,7 @@ package cli
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/project-step/step/session"
+	"github.com/stepneko/step/session"
 )
 
 var sessionManagerCfg = session.SessionManagerConfig{}
