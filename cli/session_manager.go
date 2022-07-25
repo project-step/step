@@ -3,7 +3,7 @@ package cli
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/stepneko/step/session"
+	"github.com/stepneko/neko-session/session"
 )
 
 var sessionManagerCfg = session.SessionManagerConfig{}

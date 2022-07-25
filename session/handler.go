@@ -6,6 +6,7 @@ import (
 	"github.com/go-mysql-org/go-mysql/client"
 	"github.com/go-mysql-org/go-mysql/mysql"
 	"github.com/go-mysql-org/go-mysql/server"
+	"github.com/stepneko/neko-session/planner"
 
 	"github.com/hashicorp/go-multierror"
 )
@@ -49,6 +50,16 @@ func (h *ConnHandler) initialize() error {
 	return nil
 }
 
+func (h *ConnHandler) handleSelect(query string) (*mysql.Result, error) {
+	println("yo handling select here")
+	return nil, nil
+}
+
+func (h *ConnHandler) handleMakeView(query string) (*mysql.Result, error) {
+	err := planner.BuildTree(query)
+	return nil, err
+}
+
 func (h *ConnHandler) Finalize() error {
 	var result error
 	if h.mysqlConn != nil {
@@ -69,8 +80,14 @@ func (h *ConnHandler) UseDB(db string) error {
 }
 
 func (h *ConnHandler) HandleQuery(query string) (*mysql.Result, error) {
-	result, err := h.mysqlConn.Execute(query)
-	return result, err
+	switch parseCmdType(query) {
+	case CmdType_Select:
+		return nil, nil
+	case CmdType_MakeView:
+		return h.handleMakeView(query[len("MAKE VIEW "):])
+	default:
+		return h.mysqlConn.Execute(query)
+	}
 }
 
 func (h *ConnHandler) HandleFieldList(table string, fieldWildcard string) ([]*mysql.Field, error) {

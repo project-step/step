@@ -1,8 +1,9 @@
-module github.com/stepneko/step
+module github.com/stepneko/neko-session
 
 go 1.18
 
 require (
+	github.com/antlr/antlr4/runtime/Go/antlr v0.0.0-20220722194653-14703f21b580 // indirect
 	github.com/go-mysql-org/go-mysql v1.6.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect

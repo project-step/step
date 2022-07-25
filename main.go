@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/stepneko/step/cli"
+	"github.com/stepneko/neko-session/cli"
 
 	"github.com/spf13/cobra"
 )
