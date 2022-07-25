@@ -13,7 +13,7 @@ func onConnect(c net.Conn, cfg *SessionManagerConfig) error {
 	connIdent := c.RemoteAddr().String()
 	h, err := NewHandler(cfg, connIdent)
 	if err != nil {
-		return err
+		// return err
 	}
 	conn, err := server.NewConn(c, cfg.User, cfg.Pass, h)
 	if err != nil {
