@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/spf13/cobra"
-
 	"github.com/go-mysql-org/go-mysql/server"
+
+	"github.com/spf13/cobra"
+	"github.com/stepneko/neko-session/state"
 )
 
 func onConnect(c net.Conn, cfg *SessionManagerConfig) error {
 	connIdent := c.RemoteAddr().String()
 	h, err := NewHandler(cfg, connIdent)
 	if err != nil {
+		// TODO uncomment this
 		// return err
 	}
 	conn, err := server.NewConn(c, cfg.User, cfg.Pass, h)
@@ -42,6 +44,8 @@ func Start(cmd *cobra.Command, sessionManagerCfg *SessionManagerConfig) error {
 	if err != nil {
 		return err
 	}
+
+	state.Init()
 
 	println("Listening to port: ", sessionManagerCfg.Port)
 

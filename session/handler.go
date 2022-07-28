@@ -51,13 +51,7 @@ func (h *ConnHandler) initialize() error {
 }
 
 func (h *ConnHandler) handleSelect(query string) (*mysql.Result, error) {
-	println("yo handling select here")
-	return nil, nil
-}
-
-func (h *ConnHandler) handleMakeView(query string) (*mysql.Result, error) {
-	err := planner.BuildTree(query)
-	return nil, err
+	return planner.PlanQeury(query)
 }
 
 func (h *ConnHandler) Finalize() error {
@@ -67,6 +61,7 @@ func (h *ConnHandler) Finalize() error {
 		if err != nil {
 			result = multierror.Append(result, err)
 		}
+	} else {
 	}
 	return result
 }
@@ -82,9 +77,7 @@ func (h *ConnHandler) UseDB(db string) error {
 func (h *ConnHandler) HandleQuery(query string) (*mysql.Result, error) {
 	switch parseCmdType(query) {
 	case CmdType_Select:
-		return nil, nil
-	case CmdType_MakeView:
-		return h.handleMakeView(query[len("MAKE VIEW "):])
+		return h.handleSelect(query)
 	default:
 		return h.mysqlConn.Execute(query)
 	}
