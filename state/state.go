@@ -1,27 +1,38 @@
 package state
 
-type DataSetStatus int
+type DataHandleStatus int
 
 const (
-	DataSetStatus_NotReady DataSetStatus = iota
-	DataSetStatus_Loading
-	DataSetStatus_Ready
-	DataSetStatus_Error
+	DataHandleStatus_NotReady DataHandleStatus = iota
+	DataHandleStatus_Loading
+	DataHandleStatus_Ready
+	DataHandleStatus_Error
 )
 
-type TableDataSet struct {
-	Status  DataSetStatus
+var QueryMap = make(map[string]TableDataHandle)
+
+type TableDataHandle interface {
+	Load(tableName string, columns []int) error
+	Cols() int
+	Rows() int
+	GetData(rowInd int, colInd int) []byte
+	SetStatus(status DataHandleStatus)
+	GetStatus() DataHandleStatus
+}
+
+type SimpleTableDataHandle struct {
+	Status  DataHandleStatus
 	DataSet [][][]byte
 }
 
-func NewTableDataSet() *TableDataSet {
-	return &TableDataSet{
-		Status:  DataSetStatus_NotReady,
+func NewSimpleTableDataHandle() *SimpleTableDataHandle {
+	return &SimpleTableDataHandle{
+		Status:  DataHandleStatus_NotReady,
 		DataSet: [][][]byte{},
 	}
 }
 
-func (tds *TableDataSet) LoadData(tableName string, columns []int) error {
+func (tds *SimpleTableDataHandle) Load(tableName string, columns []int) error {
 	dataSource := HashMap[tableName]
 	rowCount := len(dataSource[0])
 	colCount := len(columns)
@@ -37,4 +48,22 @@ func (tds *TableDataSet) LoadData(tableName string, columns []int) error {
 	return nil
 }
 
-var QueryMap = make(map[string]*TableDataSet)
+func (tds *SimpleTableDataHandle) Cols() int {
+	return len(tds.DataSet)
+}
+
+func (tds *SimpleTableDataHandle) Rows() int {
+	return len(tds.DataSet[0])
+}
+
+func (tds *SimpleTableDataHandle) GetData(rowId int, colId int) []byte {
+	return tds.DataSet[colId][rowId]
+}
+
+func (tds *SimpleTableDataHandle) SetStatus(status DataHandleStatus) {
+	tds.Status = status
+}
+
+func (tds *SimpleTableDataHandle) GetStatus() DataHandleStatus {
+	return tds.Status
+}

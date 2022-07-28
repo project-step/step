@@ -18,10 +18,7 @@ import (
 	"github.com/stepneko/neko-session/state"
 )
 
-func result(logicalPlan *LogicalPlan, tableState *state.TableDataSet) (*mysql.Result, error) {
-	res := &mysql.Result{
-		Resultset: mysql.NewResultset(len(tableState.DataSet)),
-	}
+func result(logicalPlan *LogicalPlan, tableState state.TableDataHandle) (*mysql.Result, error) {
 	// HACK just print data from server side
 	for _, n := range logicalPlan.ColumnNames {
 		print(n)
@@ -29,16 +26,16 @@ func result(logicalPlan *LogicalPlan, tableState *state.TableDataSet) (*mysql.Re
 	}
 	println()
 
-	for rowInd := 0; rowInd < len(tableState.DataSet[0]); rowInd++ {
-		for colInd := 0; colInd < len(tableState.DataSet); colInd++ {
-			print(string(tableState.DataSet[colInd][rowInd]))
+	for rowInd := 0; rowInd < tableState.Rows(); rowInd++ {
+		for colInd := 0; colInd < tableState.Cols(); colInd++ {
+			print(string(tableState.GetData(rowInd, colInd)))
 			print("  ")
 		}
 		println()
 	}
-	// print actual data
+
 	// TODO add data from tableState into the res to return to client conn
-	return res, nil
+	return nil, nil
 }
 
 func execPlan(logicalPlan *LogicalPlan) (*mysql.Result, error) {
@@ -47,7 +44,7 @@ func execPlan(logicalPlan *LogicalPlan) (*mysql.Result, error) {
 	tableState, exist := state.QueryMap[q]
 	if !exist {
 		wg.Add(1)
-		tableState = state.NewTableDataSet()
+		tableState = state.NewSimpleTableDataHandle()
 		ch := make(chan request.InputDatum)
 
 		go step.Start(func(w worker.Worker) error {
@@ -57,12 +54,12 @@ func execPlan(logicalPlan *LogicalPlan) (*mysql.Result, error) {
 					NewInput(s, ch).
 					Inspect(func(e edge.Edge, msg *request.Message, ts timestamp.Timestamp) (iterator.Iterator[*request.Message], error) {
 						if msg.ToString() == "init" {
-							tableState.Status = state.DataSetStatus_Loading
-							if err := tableState.LoadData(logicalPlan.TableName, logicalPlan.Columns); err != nil {
-								tableState.Status = state.DataSetStatus_Error
+							tableState.SetStatus(state.DataHandleStatus_Loading)
+							if err := tableState.Load(logicalPlan.TableName, logicalPlan.Columns); err != nil {
+								tableState.SetStatus(state.DataHandleStatus_Error)
 								return nil, err
 							}
-							tableState.Status = state.DataSetStatus_Ready
+							tableState.SetStatus(state.DataHandleStatus_Ready)
 							wg.Done()
 						}
 						return nil, nil
